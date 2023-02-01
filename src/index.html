@@ -47,8 +47,8 @@
 
         <div id="ui" class="dn bg-black-10 pa3">
             <div id="instantiators">
-                <button onclick="instantiateMem32()">Instantiate with Memory32</button>
-                <button onclick="instantiateMem64()">Instantiate with Memory64</button>
+                <button id="mem32" onclick="instantiateMem32()">Instantiate with Memory32</button>
+                <button id="mem64" onclick="instantiateMem64()">Instantiate with Memory64</button>
             </div>
 
             <div id="controls" class="dn">
@@ -83,20 +83,25 @@
         let mod32, mod64;
         async function init() {
             try {
-                const [_mod32, _mod64] = await Promise.all([
-                    WebAssembly.compileStreaming(fetch("memory-discard-mem32.wasm")),
-                    WebAssembly.compileStreaming(fetch("memory-discard-mem64.wasm")),
-                ]);
-                mod32 = _mod32;
-                mod64 = _mod64;
+                mod32 = await WebAssembly.compileStreaming(fetch("memory-discard-mem32.wasm"));
             } catch (e) {
                 if (e instanceof WebAssembly.CompileError) {
                     document.getElementById('not-supported').classList.remove('dn');
                 }
                 throw e;
             }
-
             document.getElementById('ui').classList.remove('dn');
+
+            try {
+                mod64 = await WebAssembly.compileStreaming(fetch("memory-discard-mem64.wasm"));
+            } catch (e) {
+                if (e instanceof WebAssembly.CompileError) {
+                    // A compile error here means that we _do_ have memory.discard but _don't_
+                    // have memory64. Is this even possible??
+                    document.getElementById('mem64').disabled = 'disabled';
+                }
+                throw e;
+            }
         }
 
         init();
