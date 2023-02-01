@@ -45,15 +45,13 @@
             </p>
         </div>
 
-        <div class="bg-black-10 pa3">
-            <div id="supported" class="dn">
-                <div id="instantiators">
-                    <button onclick="instantiateMem32()">Instantiate with Memory32</button>
-                    <button onclick="instantiateMem64()">Instantiate with Memory64</button>
-                </div>
+        <div id="ui" class="dn bg-black-10 pa3">
+            <div id="instantiators">
+                <button onclick="instantiateMem32()">Instantiate with Memory32</button>
+                <button onclick="instantiateMem64()">Instantiate with Memory64</button>
             </div>
 
-            <div id="ui" class="dn">
+            <div id="controls" class="dn">
                 <p>A WebAssembly module has been instantiated with 2GiB of memory.</p>
                 <div class="mv3">
                     <div class="mv1">
@@ -87,21 +85,18 @@
             try {
                 const [_mod32, _mod64] = await Promise.all([
                     WebAssembly.compileStreaming(fetch("memory-discard-mem32.wasm")),
-                    // WebAssembly.compileStreaming(fetch("memory-discard-mem64.wasm")),
-                    undefined, // TODO: mem64
+                    WebAssembly.compileStreaming(fetch("memory-discard-mem64.wasm")),
                 ]);
                 mod32 = _mod32;
                 mod64 = _mod64;
             } catch (e) {
                 if (e instanceof WebAssembly.CompileError) {
                     document.getElementById('not-supported').classList.remove('dn');
-                    return;
-                } else {
-                    throw e;
                 }
+                throw e;
             }
 
-            document.getElementById('supported').classList.remove('dn');
+            document.getElementById('ui').classList.remove('dn');
         }
 
         init();
@@ -110,7 +105,7 @@
         function instantiate(mod) {
             instance = new WebAssembly.Instance(mod);
             document.getElementById('instantiators').classList.add('dn');
-            document.getElementById('ui').classList.remove('dn');
+            document.getElementById('controls').classList.remove('dn');
         }
         function instantiateMem32() {
             instantiate(mod32);
@@ -153,6 +148,7 @@
         function check() {
             doChecked(() => {
                 const res = instance.exports.check(baseEl.value, lenEl.value);
+                console.log(res);
                 if (res > 0) {
                     setMsg('The memory was NOT zeroed.');
                 } else {

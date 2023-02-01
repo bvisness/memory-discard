@@ -22,13 +22,13 @@ os.makedirs('build', exist_ok=True)
 
 print('Compiling...')
 subprocess.run([
-    js, 'build-sm.js',
+    js, '--wasm-memory-control', 'build-sm.js',
     'src/memory-discard-mem32.wat', 'build/memory-discard-mem32.wasm',
 ])
-# subprocess.run([
-#     js, 'build-sm.js',
-#     'src/memory-discard-mem64.wat', 'build/memory-discard-mem64.wasm',
-# ])
+subprocess.run([
+    js, '--wasm-memory-control', 'build-sm.js',
+    'src/memory-discard-mem64.wat', 'build/memory-discard-mem64.wasm',
+])
 
 #
 # Output the dist folder for upload
@@ -43,7 +43,7 @@ root = 'src/index.html'
 assets = [
     'src/tachyons.css',
     'build/memory-discard-mem32.wasm',
-    # 'build/memory-discard-mem64.wasm',
+    'build/memory-discard-mem64.wasm',
 ]
 
 rootContents = open(root).read()
