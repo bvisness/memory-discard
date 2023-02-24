@@ -50,8 +50,14 @@
 
         <div id="ui" class="dn bg-black-10 pa3">
             <div id="instantiators">
-                <button id="mem32" onclick="instantiateMem32()">Instantiate with Memory32</button>
-                <button id="mem64" onclick="instantiateMem64()">Instantiate with Memory64</button>
+                <div class="mb1">
+                    <button id="mem32" onclick="instantiateMem32()">Instantiate with Memory32</button>
+                    <button id="mem32s" onclick="instantiateMem32s()">Instantiate with Memory32 (shared)</button>
+                </div>
+                <div>
+                    <button id="mem64" onclick="instantiateMem64()">Instantiate with Memory64</button>
+                    <button id="mem64s" onclick="instantiateMem64s()">Instantiate with Memory64 (shared)</button>
+                </div>
             </div>
 
             <div id="controls" class="dn">
@@ -83,10 +89,13 @@
     </div>
 
     <script>
-        let mod32, mod64;
+        let mod32, mod64, mod32s, mod64s;
         async function init() {
+            const detectDiscard = WebAssembly.compileStreaming(fetch("detect-discard.wasm"));
+            const detectMem64 = WebAssembly.compileStreaming(fetch("detect-mem64.wasm"));
+
             try {
-                mod32 = await WebAssembly.compileStreaming(fetch("memory-discard-mem32.wasm"));
+                await detectDiscard;
             } catch (e) {
                 if (e instanceof WebAssembly.CompileError) {
                     document.getElementById('not-supported').classList.remove('dn');
@@ -95,15 +104,28 @@
             }
             document.getElementById('ui').classList.remove('dn');
 
+            let hasMem64 = false;
             try {
-                mod64 = await WebAssembly.compileStreaming(fetch("memory-discard-mem64.wasm"));
+                await detectMem64;
+                hasMem64 = true;
             } catch (e) {
                 if (e instanceof WebAssembly.CompileError) {
-                    // A compile error here means that we _do_ have memory.discard but _don't_
-                    // have memory64. Is this even possible??
                     document.getElementById('mem64').disabled = 'disabled';
+                    document.getElementById('mem64s').disabled = 'disabled';
                 }
-                throw e;
+                console.error(e);
+            }
+
+            const mem32 = WebAssembly.compileStreaming(fetch("memory-discard-mem32.wasm"));
+            const mem32s = WebAssembly.compileStreaming(fetch("memory-discard-mem32-shared.wasm"));
+            const mem64 = hasMem64 ? WebAssembly.compileStreaming(fetch("memory-discard-mem64.wasm")) : Promise.reject();
+            const mem64s = hasMem64 ? WebAssembly.compileStreaming(fetch("memory-discard-mem64-shared.wasm")) : Promise.reject();
+
+            mod32 = await mem32;
+            mod32s = await mem32s;
+            if (hasMem64) {
+                mod64 = await mem64;
+                mod64s = await mem64s;
             }
         }
 
@@ -118,8 +140,14 @@
         function instantiateMem32() {
             instantiate(mod32);
         }
+        function instantiateMem32s() {
+            instantiate(mod32s);
+        }
         function instantiateMem64() {
             instantiate(mod64);
+        }
+        function instantiateMem64s() {
+            instantiate(mod64s);
         }
 
         const baseEl = document.getElementById('base');

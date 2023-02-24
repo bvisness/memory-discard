@@ -23,11 +23,27 @@ os.makedirs('build', exist_ok=True)
 print('Compiling...')
 subprocess.run([
     js, '--wasm-memory-control', 'build-sm.js',
+    'src/detect-discard.wat', 'build/detect-discard.wasm',
+])
+subprocess.run([
+    js, '--wasm-memory-control', 'build-sm.js',
+    'src/detect-mem64.wat', 'build/detect-mem64.wasm',
+])
+subprocess.run([
+    js, '--wasm-memory-control', 'build-sm.js',
     'src/memory-discard-mem32.wat', 'build/memory-discard-mem32.wasm',
 ])
 subprocess.run([
     js, '--wasm-memory-control', 'build-sm.js',
     'src/memory-discard-mem64.wat', 'build/memory-discard-mem64.wasm',
+])
+subprocess.run([
+    js, '--wasm-memory-control', 'build-sm.js',
+    'src/memory-discard-mem32-shared.wat', 'build/memory-discard-mem32-shared.wasm',
+])
+subprocess.run([
+    js, '--wasm-memory-control', 'build-sm.js',
+    'src/memory-discard-mem64-shared.wat', 'build/memory-discard-mem64-shared.wasm',
 ])
 
 #
@@ -42,8 +58,12 @@ buildId = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)) #
 root = 'src/index.html'
 assets = [
     'src/tachyons.css',
+    'build/detect-discard.wasm',
+    'build/detect-mem64.wasm',
     'build/memory-discard-mem32.wasm',
+    'build/memory-discard-mem32-shared.wasm',
     'build/memory-discard-mem64.wasm',
+    'build/memory-discard-mem64-shared.wasm',
 ]
 
 rootContents = open(root).read()
